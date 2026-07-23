@@ -1,0 +1,229 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+
+enum UserRole {
+  REQUESTER
+  AGENT
+  ADMIN
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING
+  RESOLVED
+  CLOSED
+}
+
+enum NotificationType {
+  TICKET_CREATED
+  TICKET_ASSIGNED
+  TICKET_STATUS_CHANGED
+  NEW_COMMENT
+  SLA_BREACHED
+}
+
+enum Department {
+  DEVELOPER
+  ADMINISTRATIVE
+  FINANCER
+  RH
+  OPERACIONAL
+  FROTA
+  DRIVER
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  document  String @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users         User[]
+  categories    Category[]
+  slaPolicies   SlaPolicy[]
+  tickets       Ticket[]
+
+  @@map("organizations")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  orgId     String   @map("org_id")
+  name      String
+  email     String   @unique
+  password  String
+  phone     String?  @unique
+  role      UserRole @default(REQUESTER)
+  department Department @default(ADMINISTRATIVE)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [orgId], references: [id])
+
+  ticketsRequested Ticket[]        @relation("TicketRequester")
+  ticketsAssigned  Ticket[]        @relation("TicketAssignee")
+  comments         TicketComment[]
+  attachments      TicketAttachment[]
+  historyEntries   TicketHistory[]
+  notifications    Notification[]
+  refreshTokens   RefreshToken[]
+
+  @@index([orgId])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  userId   String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
+}
+model Category {
+  id        String   @id @default(uuid())
+  orgId     String   @map("org_id")
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [orgId], references: [id])
+  tickets      Ticket[]
+
+  @@index([orgId])
+  @@map("categories")
+}
+
+model SlaPolicy {
+  id                    String         @id @default(uuid())
+  orgId                 String         @map("org_id")
+  priority              TicketPriority
+  responseTimeMinutes   Int            @map("response_time_minutes")
+  resolutionTimeMinutes Int            @map("resolution_time_minutes")
+  createdAt             DateTime       @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [orgId], references: [id])
+  tickets      Ticket[]
+
+  @@unique([orgId, priority])
+  @@map("sla_policies")
+}
+
+model Ticket {
+  id           String         @id @default(uuid())
+  orgId        String         @map("org_id")
+  title        String
+  description  String
+  priority     TicketPriority @default(MEDIUM)
+  status       TicketStatus   @default(OPEN)
+  imagens        String[]        @map("image")
+
+  categoryId   String?        @map("category_id")
+  requesterId  String         @map("requester_id")
+  assignedToId String?        @map("assigned_to_id")
+
+  slaPolicyId  String?        @map("sla_policy_id")
+  slaDueAt     DateTime?      @map("sla_due_at")
+  slaBreached  Boolean        @default(false) @map("sla_breached")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  closedAt  DateTime? @map("closed_at")
+
+  organization Organization @relation(fields: [orgId], references: [id])
+  category     Category?    @relation(fields: [categoryId], references: [id])
+  requester    User         @relation("TicketRequester", fields: [requesterId], references: [id])
+  assignedTo   User?        @relation("TicketAssignee", fields: [assignedToId], references: [id])
+  slaPolicy    SlaPolicy?   @relation(fields: [slaPolicyId], references: [id])
+
+  comments    TicketComment[]
+  attachments TicketAttachment[]
+  history     TicketHistory[]
+  notifications Notification[]
+
+  @@index([orgId])
+  @@index([requesterId])
+  @@index([assignedToId])
+  @@index([status])
+  @@map("tickets")
+}
+
+model TicketComment {
+  id         String   @id @default(uuid())
+  ticketId   String   @map("ticket_id")
+  userId     String   @map("user_id")
+  body       String
+  isInternal Boolean  @default(false) @map("is_internal")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
+
+  attachments TicketAttachment[]
+
+  @@index([ticketId])
+  @@map("ticket_comments")
+}
+
+model TicketAttachment {
+  id         String   @id @default(uuid())
+  ticketId   String   @map("ticket_id")
+  commentId  String?  @map("comment_id")
+  fileUrl    String   @map("file_url")
+  fileName   String   @map("file_name")
+  sizeBytes  Int      @map("size_bytes")
+  uploadedBy String   @map("uploaded_by")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  ticket  Ticket         @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  comment TicketComment? @relation(fields: [commentId], references: [id])
+  uploader User          @relation(fields: [uploadedBy], references: [id])
+
+  @@index([ticketId])
+  @@map("ticket_attachments")
+}
+
+model TicketHistory {
+  id          String   @id @default(uuid())
+  ticketId    String   @map("ticket_id")
+  userId      String   @map("user_id")
+  fieldChanged String  @map("field_changed")
+  oldValue    String?  @map("old_value")
+  newValue    String?  @map("new_value")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([ticketId])
+  @@map("ticket_history")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  ticketId  String?          @map("ticket_id")
+  type      NotificationType
+  readAt    DateTime?        @map("read_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user   User    @relation(fields: [userId], references: [id])
+  ticket Ticket? @relation(fields: [ticketId], references: [id])
+
+  @@index([userId])
+  @@map("notifications")
+}
