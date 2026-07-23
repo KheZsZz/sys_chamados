@@ -48,9 +48,9 @@ enum Department {
 model Organization {
   id        String   @id @default(uuid())
   name      String
-  document  String   @unique
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  document  String   @unique @db.VarChar(14)
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
 
   users       User[]
   categories  Category[]
