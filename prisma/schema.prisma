@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
-
 
 enum UserRole {
   REQUESTER
@@ -49,39 +48,39 @@ enum Department {
 model Organization {
   id        String   @id @default(uuid())
   name      String
-  document  String @unique
+  document  String   @unique
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  users         User[]
-  categories    Category[]
-  slaPolicies   SlaPolicy[]
-  tickets       Ticket[]
+  users       User[]
+  categories  Category[]
+  slaPolicies SlaPolicy[]
+  tickets     Ticket[]
 
   @@map("organizations")
 }
 
 model User {
-  id        String   @id @default(uuid())
-  orgId     String   @map("org_id")
-  name      String
-  email     String   @unique
-  password  String
-  phone     String?  @unique
-  role      UserRole @default(REQUESTER)
+  id         String     @id @default(uuid())
+  orgId      String     @map("org_id")
+  name       String
+  email      String     @unique
+  password   String
+  phone      String?    @unique
+  role       UserRole   @default(REQUESTER)
   department Department @default(ADMINISTRATIVE)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
 
   organization Organization @relation(fields: [orgId], references: [id])
 
-  ticketsRequested Ticket[]        @relation("TicketRequester")
-  ticketsAssigned  Ticket[]        @relation("TicketAssignee")
+  ticketsRequested Ticket[]           @relation("TicketRequester")
+  ticketsAssigned  Ticket[]           @relation("TicketAssignee")
   comments         TicketComment[]
   attachments      TicketAttachment[]
   historyEntries   TicketHistory[]
   notifications    Notification[]
-  refreshTokens   RefreshToken[]
+  refreshTokens    RefreshToken[]
 
   @@index([orgId])
   @@map("users")
@@ -92,9 +91,10 @@ model RefreshToken {
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
-  userId   String @map("user_id")
-  user   User   @relation(fields: [userId], references: [id])
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id])
 }
+
 model Category {
   id        String   @id @default(uuid())
   orgId     String   @map("org_id")
@@ -124,21 +124,21 @@ model SlaPolicy {
 }
 
 model Ticket {
-  id           String         @id @default(uuid())
-  orgId        String         @map("org_id")
-  title        String
-  description  String
-  priority     TicketPriority @default(MEDIUM)
-  status       TicketStatus   @default(OPEN)
-  imagens        String[]        @map("image")
+  id          String         @id @default(uuid())
+  orgId       String         @map("org_id")
+  title       String
+  description String
+  priority    TicketPriority @default(MEDIUM)
+  status      TicketStatus   @default(OPEN)
+  imagens     String[]       @map("image")
 
-  categoryId   String?        @map("category_id")
-  requesterId  String         @map("requester_id")
-  assignedToId String?        @map("assigned_to_id")
+  categoryId   String? @map("category_id")
+  requesterId  String  @map("requester_id")
+  assignedToId String? @map("assigned_to_id")
 
-  slaPolicyId  String?        @map("sla_policy_id")
-  slaDueAt     DateTime?      @map("sla_due_at")
-  slaBreached  Boolean        @default(false) @map("sla_breached")
+  slaPolicyId String?   @map("sla_policy_id")
+  slaDueAt    DateTime? @map("sla_due_at")
+  slaBreached Boolean   @default(false) @map("sla_breached")
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -150,9 +150,9 @@ model Ticket {
   assignedTo   User?        @relation("TicketAssignee", fields: [assignedToId], references: [id])
   slaPolicy    SlaPolicy?   @relation(fields: [slaPolicyId], references: [id])
 
-  comments    TicketComment[]
-  attachments TicketAttachment[]
-  history     TicketHistory[]
+  comments      TicketComment[]
+  attachments   TicketAttachment[]
+  history       TicketHistory[]
   notifications Notification[]
 
   @@index([orgId])
@@ -189,22 +189,22 @@ model TicketAttachment {
   uploadedBy String   @map("uploaded_by")
   createdAt  DateTime @default(now()) @map("created_at")
 
-  ticket  Ticket         @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  comment TicketComment? @relation(fields: [commentId], references: [id])
-  uploader User          @relation(fields: [uploadedBy], references: [id])
+  ticket   Ticket         @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  comment  TicketComment? @relation(fields: [commentId], references: [id])
+  uploader User           @relation(fields: [uploadedBy], references: [id])
 
   @@index([ticketId])
   @@map("ticket_attachments")
 }
 
 model TicketHistory {
-  id          String   @id @default(uuid())
-  ticketId    String   @map("ticket_id")
-  userId      String   @map("user_id")
-  fieldChanged String  @map("field_changed")
-  oldValue    String?  @map("old_value")
-  newValue    String?  @map("new_value")
-  createdAt   DateTime @default(now()) @map("created_at")
+  id           String   @id @default(uuid())
+  ticketId     String   @map("ticket_id")
+  userId       String   @map("user_id")
+  fieldChanged String   @map("field_changed")
+  oldValue     String?  @map("old_value")
+  newValue     String?  @map("new_value")
+  createdAt    DateTime @default(now()) @map("created_at")
 
   ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id])
