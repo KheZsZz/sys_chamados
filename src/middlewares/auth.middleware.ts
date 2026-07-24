@@ -7,7 +7,6 @@ export async function authMiddleware(request: FastifyRequest, reply: FastifyRepl
       return reply.status(401).send({ message: 'Token not found' })
     }
 
-
     const [scheme, token] = authHeader.split(' ')
 
     if (!/^Bearer$/i.test(scheme) || !token) {
@@ -17,6 +16,7 @@ export async function authMiddleware(request: FastifyRequest, reply: FastifyRepl
         })
       }
       await request.jwtVerify()
+
   } catch (err) {
     return reply.status(401).send({ message: 'Token inválido ou ausente.' })
   }

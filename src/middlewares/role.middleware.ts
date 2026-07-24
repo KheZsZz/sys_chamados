@@ -4,13 +4,13 @@ import { ROLE_HIERARCHY } from '@/libs/roles'
 
 export function AccessMiddleware(allowedDepartments: string[], minimumRoleRequired?: string) {
   return async (req: FastifyRequest, res: FastifyReply) => {
-    const user = req.user as { id: string; role: string; department: string } | undefined
+    const user = req.user
 
     if (!user) {
       return res.status(401).send({ message: 'Not authenticated.' })
     }
 
-    if (user.role === 'DEVELOPERMENT' || user.department === 'DEVELOPER') {
+    if (user.department === 'DEVELOPER') {
       return
     }
 

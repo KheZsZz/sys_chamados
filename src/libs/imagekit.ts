@@ -10,6 +10,10 @@ export type StorageFolder =
   | '/tickets'
   | '/avatars'
 
+export interface UploadResult {
+  url: string;
+  fileId: string;
+}
 
 export const ImagekitClient = {
 
@@ -17,7 +21,7 @@ export const ImagekitClient = {
       fileBuffer: Buffer,
       fileName: string,
       folder: StorageFolder
-    ): Promise<string> => {
+    ): Promise<UploadResult> => {
     const response = await imagekit.upload({
       file: fileBuffer,
       fileName: fileName,
@@ -25,7 +29,10 @@ export const ImagekitClient = {
       useUniqueFileName: true,
     });
 
-    return response.url;
+    return {
+      url: response.url,
+      fileId: response.fileId,
+    };
   },
   deleteFile: async (fileId: string): Promise<void> => {
     await imagekit.deleteFile(fileId);
