@@ -1,5 +1,5 @@
 import 'fastify';
-import { ROLE_HIERARCHY, ROLE_DEPARTAMENT } from '@/config/roles';
+import { ROLE_HIERARCHY, ROLE_DEPARTAMENT } from '@/libs/roles';
 
 declare module 'fastify' {
   interface FastifyRequest {

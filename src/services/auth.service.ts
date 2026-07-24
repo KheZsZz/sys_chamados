@@ -1,5 +1,6 @@
 import { prisma } from '@/libs/prisma'
 import { compare } from 'bcrypt'
+import { FastifyInstance } from 'fastify'
 
 interface LoginResponse {
   user: {
@@ -18,8 +19,12 @@ interface RefreshResponse {
 }
 
 
+const ACCESS_TOKEN_EXPIRES_IN = '30m'
+const REFRESH_TOKEN_EXPIRES_IN = '7d'
+const REFRESH_TOKEN_EXPIRES_IN_DAYS = 7
+
 export const authService = {
-  login: async (email: string, password: string, fastify: any): Promise<LoginResponse> => {
+  login: async (email: string, password: string, fastify: FastifyInstance): Promise<LoginResponse> => {
     const user = await prisma.user.findUnique({ where: { email } })
     if (!user) {
       throw new Error('E-mail or password invalid.')
@@ -32,8 +37,8 @@ export const authService = {
     }
 
     const accessToken = fastify.jwt.sign(
-      { id: user.id, role: user.role },
-      { sign: { sub: user.id, expiresIn: '5m' } }
+      { id: user.id, orgId: user.orgId, email: user.email, role: user.role, department: user.department },
+      { sign: { sub: user.id, expiresIn: ACCESS_TOKEN_EXPIRES_IN } }
     )
 
     const refreshTokenString = fastify.jwt.sign(
@@ -41,16 +46,17 @@ export const authService = {
       { sign: { sub: user.id, expiresIn: '7d' } }
     )
     const expiresAt = new Date()
-    expiresAt.setDate(expiresAt.getDate() + 7)
+
+    expiresAt.setDate(expiresAt.getDate() + REFRESH_TOKEN_EXPIRES_IN_DAYS)
 
     await prisma.refreshToken.create({
       data: {
         token: refreshTokenString,
         user: {
-        connect: {
-          id: user.id
-        }
-    },
+          connect: {
+            id: user.id
+          }
+        },
         expiresAt
       }
     })
@@ -67,8 +73,7 @@ export const authService = {
       refreshToken: refreshTokenString
     }
   },
-
-  refreshSession: async (currentRefreshToken: string, fastify: any): Promise<RefreshResponse> => {
+  refreshSession: async (currentRefreshToken: string, fastify: FastifyInstance): Promise<RefreshResponse> => {
     const tokenRecord = await prisma.refreshToken.findUnique({
       where: { token: currentRefreshToken },
       include: { user: true }
@@ -86,22 +91,32 @@ export const authService = {
     await prisma.refreshToken.delete({ where: { id: tokenRecord.id } }) // trava de segurança.
 
     const newAccessToken = fastify.jwt.sign(
-      { id: tokenRecord.user.id, role: tokenRecord.user.role },
-      { sign: { sub: tokenRecord.user.id, expiresIn: '30m' } }
+      {
+        id: tokenRecord.user.id,
+        orgId: tokenRecord.user.orgId,
+        email: tokenRecord.user.email,
+        role: tokenRecord.user.role,
+        department: tokenRecord.user.department
+      },
+      { sign: { sub: tokenRecord.user.id, expiresIn: ACCESS_TOKEN_EXPIRES_IN } }
     )
 
     const newRefreshToken = fastify.jwt.sign(
       { id: tokenRecord.user.id },
-      { sign: { sub: tokenRecord.user.id, expiresIn: '7d' } }
+      { sign: { sub: tokenRecord.user.id, expiresIn: REFRESH_TOKEN_EXPIRES_IN } }
     )
 
     const newExpiresAt = new Date()
-    newExpiresAt.setDate(newExpiresAt.getDate() + 7)
+    newExpiresAt.setDate(newExpiresAt.getDate() + REFRESH_TOKEN_EXPIRES_IN_DAYS)
 
     await prisma.refreshToken.create({
       data: {
         token: newRefreshToken,
-        user_id: tokenRecord.user.id,
+        user: {
+          connect: {
+            id: tokenRecord.user.id
+          }
+        },
         expiresAt: newExpiresAt
       }
     })
@@ -111,7 +126,6 @@ export const authService = {
       newRefreshToken
     }
   },
-
   logout: async (currentRefreshToken: string) => {
     await prisma.refreshToken.deleteMany({
       where: { token: currentRefreshToken }

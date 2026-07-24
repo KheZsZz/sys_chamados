@@ -6,6 +6,7 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().default(3333),
   JWT_SECRET: z.string().min(16),
   COOKIE_SECRET: z.string().min(16),
+  CORS_ORIGINS: z.string().default('*'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 });
 

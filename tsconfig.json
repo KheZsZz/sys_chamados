@@ -7,7 +7,8 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
+      "@/*": ["src/*"]
+
     },
 
     "rootDir": "./src",
@@ -19,7 +20,6 @@
 
     "typeRoots": ["./node_modules/@types", "./src/types"],
   },
-
   "include": [
     "src/**/*",
     "src/types/express.d.ts"

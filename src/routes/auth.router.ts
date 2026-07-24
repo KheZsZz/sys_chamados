@@ -53,6 +53,12 @@ export async function authRoutes(routes: FastifyInstance) {
     }
   });
   app.post('/logout', async (req, res) => {
+    const refreshToken = req.cookies.refreshToken
+
+    if (refreshToken) {
+      await authService.logout(refreshToken)
+    }
+
     res.clearCookie('refreshToken', {
       path: '/',
       secure: process.env.NODE_ENV === 'production',
@@ -65,4 +71,5 @@ export async function authRoutes(routes: FastifyInstance) {
 
 /*
 * Implementado o token detroy quando o usuário faz logout.
+* Implementado o token destroy quando o usuário faz logout.
 */

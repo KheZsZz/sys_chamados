@@ -23,3 +23,14 @@ export const notificationTypeSchema = z.enum([
   'SLA_BREACHED',
 ]);
 export type NotificationType = z.infer<typeof notificationTypeSchema>;
+
+export const departmentSchema = z.enum([
+  'DEVELOPER',
+  'ADMINISTRATIVE',
+  'FINANCER',
+  'RH',
+  'OPERACIONAL',
+  'FROTA',
+  'DRIVER',
+]);
+export type Department = z.infer<typeof departmentSchema>;

@@ -4,6 +4,13 @@
   "main": "src/server.ts",
   "license": "MIT",
   "author": "Kevin Oliveira ",
+  "scripts": {
+    "start": "tsx src/server.ts",
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "generate": "prisma generate",
+    "format": "prisma format"
+  },
   "dependencies": {
     "@fastify/cookie": "^11.1.2",
     "@fastify/cors": "^11.3.0",
