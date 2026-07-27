@@ -19,6 +19,7 @@ import { ticketsRoutes } from '@/routes/tickets.router';
 import { commentsRoutes } from '@/routes/comments.router';
 import { attachmentsRoutes } from '@/routes/attachments.router';
 import { notificationsRoutes } from '@/routes/notifications.router';
+import { cronRoutes } from '@/routes/cron.router';
 import { errorHandler } from '@/middlewares/error.middleware';
 
 export const app = Fastify().withTypeProvider<ZodTypeProvider>();
@@ -57,6 +58,7 @@ app.register(ticketsRoutes, { prefix: '/tickets' });
 app.register(commentsRoutes, { prefix: '/tickets' });
 app.register(attachmentsRoutes, { prefix: '/tickets' });
 app.register(notificationsRoutes, { prefix: '/notifications' });
+app.register(cronRoutes, { prefix: '/cron' });
 
 app.listen({ port: env.PORT, host: '0.0.0.0' }, (err, address) => {
   if (err) {

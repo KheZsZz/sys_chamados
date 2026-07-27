@@ -1,6 +1,7 @@
 import { prisma } from '@/libs/prisma';
 import { Prisma } from '@/generated/prisma';
 import { createAppError, notFoundError, badRequestError } from '@/libs/errors';
+import { notifyUser } from '@/services/notifications.service';
 import {
   CreateTicketInput,
   UpdateTicketInput,
@@ -60,7 +61,7 @@ export const ticketsService = {
       ? new Date(Date.now() + slaPolicy.resolutionTimeMinutes * 60_000)
       : null;
 
-    return prisma.ticket.create({
+    const ticket = await prisma.ticket.create({
       data: {
         orgId,
         title: input.title,
@@ -72,6 +73,16 @@ export const ticketsService = {
         slaDueAt,
       },
     });
+
+    // Confirmation to the requester only — no department-wide broadcast.
+    notifyUser({
+      userId: requesterId,
+      ticketId: ticket.id,
+      type: 'TICKET_CREATED',
+      ticketTitle: ticket.title,
+    }).catch((err) => console.warn('Failed to send TICKET_CREATED notification:', err));
+
+    return ticket;
   },
 
   list: async (orgId: string, query: ListTicketsQuery, requestingUser: RequestingUser) => {
@@ -212,12 +223,13 @@ export const ticketsService = {
     ]);
 
     if (input.status && input.status !== ticket.status) {
-      await prisma.notification.create({
-        data: {
-          userId: ticket.requesterId,
-          ticketId: id,
-          type: 'TICKET_STATUS_CHANGED',
-        },
+      await notifyUser({
+        userId: ticket.requesterId,
+        ticketId: id,
+        type: 'TICKET_STATUS_CHANGED',
+        ticketTitle: ticket.title,
+        oldStatus: ticket.status,
+        newStatus: input.status,
       });
     }
 
@@ -247,12 +259,11 @@ export const ticketsService = {
       { field: 'assignedToId', oldValue: ticket.assignedToId, newValue: assignedToId },
     ]);
 
-    await prisma.notification.create({
-      data: {
-        userId: assignedToId,
-        ticketId: id,
-        type: 'TICKET_ASSIGNED',
-      },
+    await notifyUser({
+      userId: assignedToId,
+      ticketId: id,
+      type: 'TICKET_ASSIGNED',
+      ticketTitle: ticket.title,
     });
 
     return updated;

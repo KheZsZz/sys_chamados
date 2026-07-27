@@ -1,5 +1,6 @@
 import { prisma } from '@/libs/prisma';
 import { notFoundError, createAppError } from '@/libs/errors';
+import { notifyUser } from '@/services/notifications.service';
 import { CreateCommentInput } from '@/schemas/comments.schema';
 
 interface RequestingUser {
@@ -51,12 +52,11 @@ export const commentsService = {
     if (requestingUser.role !== 'REQUESTER') {
       const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
       if (ticket && ticket.requesterId !== requestingUser.id) {
-        await prisma.notification.create({
-          data: {
-            userId: ticket.requesterId,
-            ticketId,
-            type: 'NEW_COMMENT',
-          },
+        await notifyUser({
+          userId: ticket.requesterId,
+          ticketId,
+          type: 'NEW_COMMENT',
+          ticketTitle: ticket.title,
         });
       }
     }
