@@ -1,11 +1,12 @@
-import { PrismaClient } from '@/generated/prisma';
-import { env } from '@/schemas/env.schema';
+import 'dotenv/config';
+import { defineConfig, env } from 'prisma/config';
 
-const prismaLogLevels =
-  env.NODE_ENV === 'production'
-    ? (['warn', 'error'] as const)
-    : (['query', 'warn', 'error'] as const);
-
-export const prisma = new PrismaClient({
-  log: [...prismaLogLevels],
+export default defineConfig({
+  schema: 'prisma/schema.prisma',
+  migrations: {
+    path: 'prisma/migrations',
+  },
+  datasource: {
+    url: env('DATABASE_URL'),
+  },
 });
