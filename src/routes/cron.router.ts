@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { cronAuthMiddleware } from '@/middlewares/cron.middleware';
-import { slaCheckerService } from '@/services/sla-checker.service';
+import { slaCheckerService } from '@/services/checker.service';
 
 export async function cronRoutes(routes: FastifyInstance) {
   routes.addHook('preHandler', cronAuthMiddleware);
