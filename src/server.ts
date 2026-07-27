@@ -12,6 +12,13 @@ import {
 } from '@fastify/type-provider-zod';
 import { env } from '@/schemas/env.schema';
 import { authRoutes } from '@/routes/auth.router';
+import { usersRoutes } from '@/routes/users.router';
+import { categoriesRoutes } from '@/routes/categories.router';
+import { slaRoutes } from '@/routes/sla.router';
+import { ticketsRoutes } from '@/routes/tickets.router';
+import { commentsRoutes } from '@/routes/comments.router';
+import { attachmentsRoutes } from '@/routes/attachments.router';
+import { notificationsRoutes } from '@/routes/notifications.router';
 import { errorHandler } from '@/middlewares/error.middleware';
 
 export const app = Fastify().withTypeProvider<ZodTypeProvider>();
@@ -27,7 +34,7 @@ app.register(cookies, {
 });
 app.register(cors, {
   origin: env.CORS_ORIGINS,
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 });
@@ -43,6 +50,13 @@ app.register(multipart, {
 app.setErrorHandler(errorHandler);
 
 app.register(authRoutes, { prefix: '/auth' });
+app.register(usersRoutes, { prefix: '/users' });
+app.register(categoriesRoutes, { prefix: '/categories' });
+app.register(slaRoutes, { prefix: '/sla-policies' });
+app.register(ticketsRoutes, { prefix: '/tickets' });
+app.register(commentsRoutes, { prefix: '/tickets' });
+app.register(attachmentsRoutes, { prefix: '/tickets' });
+app.register(notificationsRoutes, { prefix: '/notifications' });
 
 app.listen({ port: env.PORT, host: '0.0.0.0' }, (err, address) => {
   if (err) {
