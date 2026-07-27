@@ -8,13 +8,16 @@ const envSchema = z.object({
   COOKIE_SECRET: z.string().min(16),
   CORS_ORIGINS: z.string().default('*'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  IMAGEKIT_PUBLIC_KEY: z.string().min(1, 'IMAGEKIT_PUBLIC_KEY is required'),
+  IMAGEKIT_PRIVATE_KEY: z.string().min(1, 'IMAGEKIT_PRIVATE_KEY is required'),
+  IMAGEKIT_URL_ENDPOINT: z.string().url('IMAGEKIT_URL_ENDPOINT must be a valid URL'),
 });
 
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
-  console.error('❌ Variáveis de ambiente inválidas:', parsed.error.flatten().fieldErrors);
-  throw new Error('Configuração de ambiente inválida');
+  console.error('❌ Invalid environment variables:', parsed.error.flatten().fieldErrors);
+  throw new Error('Invalid environment configuration');
 }
 
 export const env = parsed.data;

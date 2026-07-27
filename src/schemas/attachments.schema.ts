@@ -20,7 +20,7 @@ export const attachmentMetadataSchema = z.object({
     .number()
     .int()
     .positive()
-    .max(MAX_ATTACHMENT_SIZE_BYTES, 'Arquivo excede o limite de 5MB'),
+    .max(MAX_ATTACHMENT_SIZE_BYTES, 'File exceeds the 5MB limit'),
 });
 export type AttachmentMetadataInput = z.infer<typeof attachmentMetadataSchema>;
 

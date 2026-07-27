@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { ZodTypeProvider } from "@fastify/type-provider-zod";
 import { authService } from '@/services/auth.service';
 import { loginBodySchema } from '@/schemas/auth.schema';
-
+import { unauthorizedError } from '@/libs/errors';
 
 export async function authRoutes(routes: FastifyInstance) {
   const app = routes.withTypeProvider<ZodTypeProvider>();
@@ -12,46 +12,40 @@ export async function authRoutes(routes: FastifyInstance) {
         body: loginBodySchema
       }
     }, async (req, res) => {
-    try {
-      const { email, password } = req.body
-      const { user, accessToken, refreshToken } = await authService.login(email, password, routes)
+    const { email, password } = req.body
+    const { user, accessToken, refreshToken } = await authService.login(email, password, routes)
 
-      res.setCookie('refreshToken', refreshToken, {
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        httpOnly: true,
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7 // 7 dias
-      })
+    res.setCookie('refreshToken', refreshToken, {
+      path: '/',
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7 // 7 days
+    })
 
-      return res.status(200).send({ user, accessToken })
-    } catch (error: any) {
-      return res.status(401).send({ message: error.message })
-    }
+    return res.status(200).send({ user, accessToken })
   });
+
   app.post('/refresh', async (req, res) => {
     const refreshToken = req.cookies.refreshToken
 
     if (!refreshToken) {
-      return res.status(401).send({ message: 'Refresh token ausente. Faça login novamente.' })
+      throw unauthorizedError('Refresh token missing. Please log in again.')
     }
 
-    try {
-      const { newAccessToken, newRefreshToken } = await authService.refreshSession(refreshToken, routes)
+    const { newAccessToken, newRefreshToken } = await authService.refreshSession(refreshToken, routes)
 
-      res.setCookie('refreshToken', newRefreshToken, {
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        httpOnly: true,
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7
-      })
+    res.setCookie('refreshToken', newRefreshToken, {
+      path: '/',
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7
+    })
 
-      return res.status(200).send({ accessToken: newAccessToken })
-    } catch (error) {
-      return res.status(401).send({ message: 'Session invalid or expired.' })
-    }
+    return res.status(200).send({ accessToken: newAccessToken })
   });
+
   app.post('/logout', async (req, res) => {
     const refreshToken = req.cookies.refreshToken
 
@@ -65,11 +59,10 @@ export async function authRoutes(routes: FastifyInstance) {
       httpOnly: true,
       sameSite: 'lax',
     })
-    return res.status(200).send({ message: 'Logout realizado com sucesso.' })
+    return res.status(200).send({ message: 'Logout successful.' })
   });
 }
 
 /*
-* Implementado o token detroy quando o usuário faz logout.
-* Implementado o token destroy quando o usuário faz logout.
+* Token destroy implemented on user logout.
 */

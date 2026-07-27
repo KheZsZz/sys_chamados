@@ -2,8 +2,8 @@ import { z } from 'zod';
 import { ticketPrioritySchema, ticketStatusSchema } from '@/schemas/enum.schema';
 
 export const createTicketSchema = z.object({
-  title: z.string().min(3, 'Título muito curto').max(150),
-  description: z.string().min(10, 'Descreva o problema com mais detalhes'),
+  title: z.string().min(3, 'Title too short').max(150),
+  description: z.string().min(10, 'Please describe the problem in more detail'),
   priority: ticketPrioritySchema.default('MEDIUM'),
   categoryId: z.string().uuid().optional(),
 });

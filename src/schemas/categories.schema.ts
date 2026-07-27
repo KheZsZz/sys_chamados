@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const createCategorySchema = z.object({
-  name: z.string().min(2, 'Nome muito curto').max(80),
+  name: z.string().min(2, 'Name too short').max(80),
 });
 export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
 

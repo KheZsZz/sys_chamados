@@ -1,6 +1,7 @@
 import { prisma } from '@/libs/prisma'
 import { compare } from 'bcrypt'
 import { FastifyInstance } from 'fastify'
+import { unauthorizedError } from '@/libs/errors'
 
 interface LoginResponse {
   user: {
@@ -18,7 +19,6 @@ interface RefreshResponse {
   newRefreshToken: string
 }
 
-
 const ACCESS_TOKEN_EXPIRES_IN = '30m'
 const REFRESH_TOKEN_EXPIRES_IN = '7d'
 const REFRESH_TOKEN_EXPIRES_IN_DAYS = 7
@@ -27,13 +27,13 @@ export const authService = {
   login: async (email: string, password: string, fastify: FastifyInstance): Promise<LoginResponse> => {
     const user = await prisma.user.findUnique({ where: { email } })
     if (!user) {
-      throw new Error('E-mail or password invalid.')
+      throw unauthorizedError('Invalid email or password.')
     }
 
     const isPasswordValid = await compare(password, user.password)
 
     if (!isPasswordValid) {
-      throw new Error('E-mail or password invalid.')
+      throw unauthorizedError('Invalid email or password.')
     }
 
     const accessToken = fastify.jwt.sign(
@@ -43,10 +43,9 @@ export const authService = {
 
     const refreshTokenString = fastify.jwt.sign(
       { id: user.id },
-      { sign: { sub: user.id, expiresIn: '7d' } }
+      { sign: { sub: user.id, expiresIn: REFRESH_TOKEN_EXPIRES_IN } }
     )
     const expiresAt = new Date()
-
     expiresAt.setDate(expiresAt.getDate() + REFRESH_TOKEN_EXPIRES_IN_DAYS)
 
     await prisma.refreshToken.create({
@@ -73,6 +72,7 @@ export const authService = {
       refreshToken: refreshTokenString
     }
   },
+
   refreshSession: async (currentRefreshToken: string, fastify: FastifyInstance): Promise<RefreshResponse> => {
     const tokenRecord = await prisma.refreshToken.findUnique({
       where: { token: currentRefreshToken },
@@ -80,15 +80,15 @@ export const authService = {
     })
 
     if (!tokenRecord) {
-      throw new Error('Sessão inválida ou revogada.')
+      throw unauthorizedError('Invalid or revoked session.')
     }
 
     if (new Date() > tokenRecord.expiresAt) {
       await prisma.refreshToken.delete({ where: { id: tokenRecord.id } })
-      throw new Error('Sessão expirada. Faça login novamente.')
+      throw unauthorizedError('Session expired. Please log in again.')
     }
 
-    await prisma.refreshToken.delete({ where: { id: tokenRecord.id } }) // trava de segurança.
+    await prisma.refreshToken.delete({ where: { id: tokenRecord.id } }) // security lock: invalidate the token being used before issuing a new one.
 
     const newAccessToken = fastify.jwt.sign(
       {
@@ -126,6 +126,7 @@ export const authService = {
       newRefreshToken
     }
   },
+
   logout: async (currentRefreshToken: string) => {
     await prisma.refreshToken.deleteMany({
       where: { token: currentRefreshToken }
