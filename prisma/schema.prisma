@@ -185,6 +185,7 @@ model TicketAttachment {
   id         String   @id @default(uuid())
   ticketId   String   @map("ticket_id")
   commentId  String?  @map("comment_id")
+  fileId     String   @map("file_id")
   fileUrl    String   @map("file_url")
   fileName   String   @map("file_name")
   sizeBytes  Int      @map("size_bytes")
