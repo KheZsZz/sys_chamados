@@ -5,11 +5,11 @@ export const ROLE_HIERARCHY: Record<string, number> = {
 }
 
 export const ROLE_DEPARTAMENT: Record<string, number> = {
-  DEVELOPER: 1,
-  ADMINISTRATIVE: 2,
-  FINANCER: 3,
-  RH: 4,
-  OPERACIONAL: 5,
-  FROTA: 6,
-  DRIVER: 7,
+  DEVELOPER: 7,
+  FINANCER: 6,
+  RH: 5,
+  ADMINISTRATIVE: 4,
+  FROTA: 3,
+  OPERACIONAL: 2,
+  DRIVER: 1,
 }

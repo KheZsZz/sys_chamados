@@ -48,6 +48,7 @@ app.register(multipart, {
     fileSize: 5 * 1024 * 1024, // 5MB
   },
 });
+
 app.setErrorHandler(errorHandler);
 
 app.register(authRoutes, { prefix: '/auth' });

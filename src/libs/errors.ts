@@ -2,11 +2,6 @@ export interface AppError extends Error {
   statusCode: number;
 }
 
-/**
- * Creates a plain Error with a statusCode attached.
- * Use the specific helpers below (unauthorizedError, notFoundError, conflictError)
- * instead of calling this directly, unless you need a custom status code.
- */
 export function createAppError(message: string, statusCode = 400): AppError {
   const error = new Error(message) as AppError;
   error.statusCode = statusCode;
@@ -30,7 +25,6 @@ export function badRequestError(message = 'Bad request.'): AppError {
   return createAppError(message, 400);
 }
 
-/** Type guard used by the global error handler to detect errors we threw on purpose. */
 export function isAppError(error: unknown): error is AppError {
   return error instanceof Error && typeof (error as AppError).statusCode === 'number';
 }
