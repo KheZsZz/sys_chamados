@@ -49,7 +49,11 @@ export const commentsService = {
       },
     });
 
-    if (requestingUser.role !== 'REQUESTER') {
+    // Only notify the requester for public comments made by staff.
+    // Internal comments are invisible to the requester (see list() filter below),
+    // so notifying them would leak the existence of internal discussion
+    // and point them to a comment they can't actually open.
+    if (requestingUser.role !== 'REQUESTER' && !input.isInternal) {
       const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
       if (ticket && ticket.requesterId !== requestingUser.id) {
         await notifyUser({

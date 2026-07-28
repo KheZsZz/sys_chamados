@@ -107,6 +107,7 @@ model Category {
   organization Organization @relation(fields: [orgId], references: [id])
   tickets      Ticket[]
 
+  @@unique([orgId, name])
   @@index([orgId])
   @@map("categories")
 }

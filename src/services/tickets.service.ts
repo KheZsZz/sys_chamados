@@ -233,6 +233,21 @@ export const ticketsService = {
       });
     }
 
+    // Reassignment can now happen through PUT /:id as well as PATCH /:id/assign.
+    // Notify the newly assigned agent regardless of which route triggered it,
+    // so this doesn't depend on which endpoint the client used.
+    if (
+      input.assignedToId &&
+      input.assignedToId !== ticket.assignedToId
+    ) {
+      await notifyUser({
+        userId: input.assignedToId,
+        ticketId: id,
+        type: 'TICKET_ASSIGNED',
+        ticketTitle: ticket.title,
+      });
+    }
+
     return updated;
   },
 
