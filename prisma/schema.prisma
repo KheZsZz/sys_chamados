@@ -47,11 +47,11 @@ enum Department {
 }
 
 model Organization {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   name      String
-  document  String   @unique @db.VarChar(14)
-  createdAt DateTime? @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
+  document  String    @unique @db.VarChar(14)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
 
   users       User[]
   categories  Category[]
@@ -107,8 +107,8 @@ model Category {
   organization Organization @relation(fields: [orgId], references: [id])
   tickets      Ticket[]
 
-  @@unique([orgId, name])
   @@index([orgId])
+  @@unique([orgId, name])
   @@map("categories")
 }
 
@@ -226,7 +226,7 @@ model Notification {
   createdAt DateTime         @default(now()) @map("created_at")
 
   user   User    @relation(fields: [userId], references: [id])
-  ticket Ticket? @relation(fields: [ticketId], references: [id])
+  ticket Ticket? @relation(fields: [ticketId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@map("notifications")

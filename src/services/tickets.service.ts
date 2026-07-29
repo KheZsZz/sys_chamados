@@ -84,7 +84,6 @@ export const ticketsService = {
 
     return ticket;
   },
-
   list: async (orgId: string, query: ListTicketsQuery, requestingUser: RequestingUser) => {
     const where: Prisma.TicketWhereInput = {
       ...scopedWhere(orgId, requestingUser),
@@ -119,7 +118,6 @@ export const ticketsService = {
       },
     };
   },
-
   getById: async (orgId: string, id: string, requestingUser: RequestingUser) => {
     const ticket = await prisma.ticket.findFirst({
       where: { id, ...scopedWhere(orgId, requestingUser) },
@@ -138,13 +136,12 @@ export const ticketsService = {
 
     return ticket;
   },
-
   update: async (
     orgId: string,
     id: string,
     input: UpdateTicketInput,
     requestingUser: RequestingUser
-  ) => {
+    ) => {
     const ticket = await prisma.ticket.findFirst({
       where: { id, ...scopedWhere(orgId, requestingUser) },
     });
@@ -195,8 +192,13 @@ export const ticketsService = {
         : null;
     }
 
-    const closedAt =
-      input.status === 'CLOSED' && ticket.status !== 'CLOSED' ? new Date() : ticket.closedAt;
+    let closedAt = ticket.closedAt;
+
+    if (input.status === 'CLOSED' && ticket.status !== 'CLOSED') {
+      closedAt = new Date();
+    } else if (input.status && input.status !== 'CLOSED' && ticket.status === 'CLOSED') {
+      closedAt = null;
+    }
 
     const updated = await prisma.ticket.update({
       where: { id },
@@ -233,9 +235,6 @@ export const ticketsService = {
       });
     }
 
-    // Reassignment can now happen through PUT /:id as well as PATCH /:id/assign.
-    // Notify the newly assigned agent regardless of which route triggered it,
-    // so this doesn't depend on which endpoint the client used.
     if (
       input.assignedToId &&
       input.assignedToId !== ticket.assignedToId
@@ -250,7 +249,6 @@ export const ticketsService = {
 
     return updated;
   },
-
   assign: async (orgId: string, id: string, assignedToId: string, requestingUserId: string) => {
     const ticket = await prisma.ticket.findFirst({ where: { id, orgId } });
     if (!ticket) {

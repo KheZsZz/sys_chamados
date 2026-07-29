@@ -8,7 +8,6 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-
     },
 
     "rootDir": "./src",
@@ -18,10 +17,10 @@
     "strict": true,
     "skipLibCheck": true,
 
-    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "include": [
     "src/**/*",
-    "src/types/express.d.ts"
+    "src/types/fastify.d.ts"
   ]
 }

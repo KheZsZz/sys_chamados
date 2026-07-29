@@ -4,7 +4,7 @@ import { notFoundError } from '@/libs/errors';
 import { ListNotificationsQuery } from '@/schemas/notifications.schema';
 import { NotificationType } from '@/schemas/enum.schema';
 import { sendEmail } from '@/libs/email';
-import { buildEmailContent } from '@/services/email-templates.service';
+import { buildEmailContent } from '@/services/templates.service';
 
 interface NotifyUserParams {
   userId: string;

@@ -8,5 +8,3 @@ export const prisma = new PrismaClient({
   adapter,
   log: env.NODE_ENV === 'production' ? ['warn', 'error'] : ['query', 'warn', 'error'],
 });
-
-export default { prisma };
